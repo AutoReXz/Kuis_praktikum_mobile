@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:tugas_2_latihan_quiz/login.dart';
 
 
 class AboutPage extends StatelessWidget {

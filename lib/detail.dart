@@ -1,73 +1,78 @@
 import 'package:flutter/material.dart';
-import 'newsmodel.dart'; // Import the NewsModel class from newsmodel.dart
+import 'newsmodel.dart';
 
 class DetailPage extends StatefulWidget {
   final NewsModel news;
 
-  const DetailPage({super.key, required this.news});
+  const DetailPage({Key? key, required this.news}) : super(key: key);
 
   @override
   State<DetailPage> createState() => _DetailPageState();
 }
 
 class _DetailPageState extends State<DetailPage> {
-  bool isLiked = false;
-  late int currentLikes;
+  late NewsModel _news;
+  bool _isLiked = false;
 
   @override
   void initState() {
     super.initState();
-    currentLikes = widget.news.likes;
+    _news = widget.news;
+    // Initialize local state
+  }
+
+  void _toggleLike() {
+    setState(() {
+      if (_isLiked) {
+        _news.likes--;
+      } else {
+        _news.likes++;
+      }
+      _isLiked = !_isLiked;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.news.title),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        title: Text('Detail Berita'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Hero image
-            Stack(
-              children: [
-                Image.network(
-                  widget.news.image,
-                  width: double.infinity,
-                  height: 250,
-                  fit: BoxFit.cover,
-                ),
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(20),
+            Container(
+              width: double.infinity,
+              height: 250,
+              child: Image.network(
+                _news.image,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Icon(Icons.error, size: 50, color: Colors.red),
                     ),
-                    child: Text(
-                      "ID: ${widget.news.id}",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
                     ),
-                  ),
-                ),
-              ],
+                  );
+                },
+              ),
             ),
             
+            // Content
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -75,35 +80,29 @@ class _DetailPageState extends State<DetailPage> {
                 children: [
                   // Title
                   Text(
-                    widget.news.title,
+                    _news.title,
                     style: TextStyle(
-                      fontSize: 24.0,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   
-                  SizedBox(height: 12.0),
+                  SizedBox(height: 12),
                   
-                  // Like section
+                  // Like counter and button
                   Row(
                     children: [
                       IconButton(
                         icon: Icon(
-                          isLiked ? Icons.favorite : Icons.favorite_border,
-                          color: isLiked ? Colors.red : Colors.grey,
-                          size: 28,
+                          _isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
+                          color: Colors.blue,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            isLiked = !isLiked;
-                            currentLikes = isLiked ? currentLikes + 1 : currentLikes - 1;
-                          });
-                        },
+                        onPressed: _toggleLike,
                       ),
                       Text(
-                        '$currentLikes likes',
+                        '${_news.likes} suka',
                         style: TextStyle(
-                          fontSize: 16.0,
+                          fontSize: 16,
                           color: Colors.grey[700],
                         ),
                       ),
@@ -111,66 +110,66 @@ class _DetailPageState extends State<DetailPage> {
                   ),
                   
                   Divider(thickness: 1),
+                  SizedBox(height: 12),
                   
                   // Description
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      'Deskripsi Berita',
-                      style: TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  
                   Text(
-                    widget.news.description,
+                    _news.description,
                     style: TextStyle(
-                      fontSize: 16.0,
+                      fontSize: 18,
                       height: 1.5,
                     ),
                   ),
                   
-                  SizedBox(height: 24),
-                  
-                  // Share & Comment buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Artikel dibagikan!'))
-                          );
-                        },
-                        icon: Icon(Icons.share),
-                        label: Text('Bagikan'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Komentar sedang dibangun'))
-                          );
-                        },
-                        icon: Icon(Icons.comment),
-                        label: Text('Komentar'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                  SizedBox(height: 30),
+              
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRelatedNewsCard() {
+    return Container(
+      width: 200,
+      margin: EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+            child: Container(
+              height: 100,
+              color: Colors.grey[300],
+              child: Center(
+                child: Icon(Icons.image, color: Colors.grey[500], size: 30),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Artikel Terkait',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
     );
   }
